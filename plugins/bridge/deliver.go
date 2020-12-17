@@ -39,7 +39,7 @@ func (d *deliver) Publish(e *Elements) error {
 
 	key := e.ClientID
 
-	var bitMark int32
+	var bitMark int64
 
 	switch e.Action {
 	case Connect:
@@ -52,7 +52,7 @@ func (d *deliver) Publish(e *Elements) error {
 		if v, ok := targets.getMatch(e.Topic); ok {
 			bitMark = v
 		} else {
-			bitMark = int32(0)
+			bitMark = 0
 			for _, target := range conf.RunConfig.DeliverMap {
 				match := matchTopicSplit(target.NameSplit, e.Topic)
 				if match {

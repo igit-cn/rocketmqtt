@@ -6,7 +6,7 @@ import (
 
 type targetMemPool struct {
 	clientsMap  map[string][]string
-	topicBitMap map[string]int32
+	topicBitMap map[string]int64
 	sync.RWMutex
 }
 
@@ -20,7 +20,7 @@ func (t *targetMemPool) deleteClient(clientId string) {
 	}
 	t.Unlock()
 }
-func (t *targetMemPool) storeClientTopicMatch(clientId string, topic string, bitmap int32) {
+func (t *targetMemPool) storeClientTopicMatch(clientId string, topic string, bitmap int64) {
 	t.Lock()
 	topics, ok := t.clientsMap[clientId]
 	if ok {
@@ -38,7 +38,7 @@ func (t *targetMemPool) storeClientTopicMatch(clientId string, topic string, bit
 	t.topicBitMap[topic] = bitmap
 	t.Unlock()
 }
-func (t *targetMemPool) getMatch(topic string) (bitmap int32, ok bool) {
+func (t *targetMemPool) getMatch(topic string) (bitmap int64, ok bool) {
 	t.RLock()
 	bitmap, ok = t.topicBitMap[topic]
 	t.RUnlock()

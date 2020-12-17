@@ -38,7 +38,7 @@ type BridgeMQ interface {
 }
 
 func InitBridgeMQ() BridgeMQ {
-	targets.topicBitMap = make(map[string]int32, 100)
+	targets.topicBitMap = make(map[string]int64, 100)
 	targets.clientsMap = make(map[string][]string, 100)
 	Delivers.kafkaClients = InitKafka()
 	Delivers.rocketMQClients = InitRocketMQPushConsumer()
