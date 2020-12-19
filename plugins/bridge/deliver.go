@@ -2,6 +2,7 @@ package bridge
 
 import (
 	"errors"
+	"go.uber.org/zap"
 	"rocketmqtt/conf"
 	"strings"
 )
@@ -37,8 +38,6 @@ func (d *deliver) GetrocketMQClients() map[string]*rocketMQ {
 
 func (d *deliver) Publish(e *Elements) error {
 
-	key := e.ClientID
-
 	var bitMark int64
 
 	switch e.Action {
@@ -60,7 +59,7 @@ func (d *deliver) Publish(e *Elements) error {
 				}
 				bitMark = bitMark << 1
 			}
-			targets.storeClientTopicMatch(key, e.Topic, bitMark)
+			targets.storeClientTopicMatch(e.ClientID, e.Topic, bitMark)
 		}
 	case Subscribe:
 		//log.Debug("Connect", zap.String(e.ClientID, e.Action))
@@ -77,20 +76,24 @@ func (d *deliver) Publish(e *Elements) error {
 		//if config.DisconnectTopic != "" {
 		//	topics[config.DisconnectTopic] = true
 		//}
-		targets.deleteClient(key)
+		targets.deleteClient(e.ClientID)
 	default:
 		return errors.New("error action: " + e.Topic)
 	}
 	var err error
+	if bitMark == 0 {
+		log.Warn("No match deliver rule", zap.String("ClientID", e.ClientID), zap.String("Topic", e.Topic))
+		return nil
+	}
 	for i := len(conf.RunConfig.DeliverMap); i >= 0; i-- {
 		bit := bitMark & 1
 		if bit == 1 {
 			dm := conf.RunConfig.DeliverMap[i]
 			switch dm.Plugin {
 			case "kafka":
-				err = Delivers.kafkaClients[dm.Target].publish(dm.Topic, key, e)
+				err = Delivers.kafkaClients[dm.Target].publish(dm.Topic, e.ClientID, e)
 			case "rocketmq":
-				err = Delivers.rocketMQClients[dm.Target].publish(dm.Topic, key, e, dm.Tag)
+				err = Delivers.rocketMQClients[dm.Target].publish(dm.Topic, e.ClientID, e, dm.Tag)
 			}
 		}
 		bitMark = bitMark >> 1

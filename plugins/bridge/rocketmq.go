@@ -48,7 +48,7 @@ func (r *rocketMQ) connect() {
 	var c rocketmq.PushConsumer
 	if r.rocketMQConfig.EnableSubscribe {
 		msgModel := consumer.Clustering
-		if r.rocketMQConfig.SubscribeModel == "BroadCasting"{
+		if r.rocketMQConfig.SubscribeModel == "BroadCasting" {
 			msgModel = consumer.BroadCasting
 		}
 		c, err = rocketmq.NewPushConsumer(
@@ -87,8 +87,8 @@ func (r *rocketMQ) publish(topic string, key string, msg *Elements, tag string) 
 	rmsg := primitive.NewMessage(topic,
 		msg.Payload)
 	rmsg.WithProperty("clientId", msg.ClientID)
-	rmsg.WithProperty("topic", topic)
-	if conf.RunConfig.WithBrokerId != ""{
+	rmsg.WithProperty("topic", msg.Topic)
+	if conf.RunConfig.WithBrokerId != "" {
 		rmsg.WithProperty("bid", conf.RunConfig.WithBrokerId)
 	}
 	if tag != "" {

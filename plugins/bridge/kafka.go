@@ -16,7 +16,7 @@ type kafka struct {
 	kafakConfig conf.Kafka
 	kafkaClient sarama.AsyncProducer
 	timerPool   sync.Pool
-	Headers []sarama.RecordHeader
+	Headers     []sarama.RecordHeader
 }
 
 func InitKafka() map[string]*kafka {
@@ -28,14 +28,14 @@ func InitKafka() map[string]*kafka {
 		c := &kafka{kafakConfig: r}
 		kafkas[r.Name] = c
 		c.connect()
-		if conf.RunConfig.WithBrokerId != ""{
+		if conf.RunConfig.WithBrokerId != "" {
 			c.Headers = append(c.Headers, sarama.RecordHeader{
-				Key: []byte("bid"),
+				Key:   []byte("bid"),
 				Value: []byte(conf.RunConfig.WithBrokerId),
 			})
 		}
 	}
-		return kafkas
+	return kafkas
 }
 
 //connect
@@ -70,12 +70,20 @@ func (k *kafka) publish(topic string, key string, msg *Elements) error {
 		<-t.C
 	}
 	t.Reset(time.Duration(5) * time.Second)
+	//Headers := append(k.Headers, sarama.RecordHeader{
+	//	Key: []byte("topic"),
+	//	Value: []byte(msg.Topic),
+	//})
+	//Headers = append(Headers, sarama.RecordHeader{
+	//	Key: []byte("clientId"),
+	//	Value: []byte(msg.ClientID),
+	//})
 	select {
 	case k.kafkaClient.Input() <- &sarama.ProducerMessage{
 		Headers: k.Headers,
-		Topic: topic,
-		Key:   sarama.StringEncoder(key),
-		Value: sarama.ByteEncoder(msg.Payload),
+		Topic:   topic,
+		Key:     sarama.StringEncoder(key),
+		Value:   sarama.ByteEncoder(msg.Payload),
 	}:
 		k.timerPool.Put(t)
 		//continue
