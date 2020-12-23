@@ -11,10 +11,10 @@ import (
 	"sync"
 	"time"
 
+	"golang.org/x/net/websocket"
 	"rocketmqtt/broker/lib/sessions"
 	"rocketmqtt/broker/lib/topics"
 	"rocketmqtt/plugins/bridge"
-	"golang.org/x/net/websocket"
 
 	"github.com/eclipse/paho.mqtt.golang/packets"
 	"go.uber.org/zap"
@@ -292,8 +292,7 @@ func (c *client) processClientPublish(packet *packets.PublishPacket) {
 
 	switch packet.Qos {
 	case QosAtMostOnce:
-		// stop mqtt client send to mqtt subscribe
-		//c.ProcessPublishMessage(packet)
+		c.ProcessPublishMessage(packet)
 	case QosAtLeastOnce:
 		puback := packets.NewControlPacket(packets.Puback).(*packets.PubackPacket)
 		puback.MessageID = packet.MessageID
@@ -301,8 +300,7 @@ func (c *client) processClientPublish(packet *packets.PublishPacket) {
 			log.Error("send puback error, ", zap.Error(err), zap.String("ClientID", c.info.clientID))
 			return
 		}
-		// stop mqtt client send to mqtt subscribe
-		//c.ProcessPublishMessage(packet)
+		c.ProcessPublishMessage(packet)
 	case QosExactlyOnce:
 		return
 	default:
