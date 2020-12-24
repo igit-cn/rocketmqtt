@@ -86,10 +86,10 @@ func subscribeRmq(rc rocketmq.PushConsumer, b *broker.Broker, topic string, tag 
 			packet.Qos = 0
 			packet.Payload = msgs[i].Body
 
-			if msgClientId != "" && msgClientId != "-" {
-				b.PublishMessageByCid(msgClientId, packet)
-			} else if msgTopic != "" {
+			if msgClientId == "" || msgClientId == "-" {
 				b.PublishMessage(packet)
+			} else if msgTopic != "" {
+				b.PublishMessageByCid(msgClientId, packet)
 			} else {
 				log.Warn("can't send message", zap.String("topic", msgTopic),
 					zap.String("clientId", msgClientId), zap.Any("payload", packet.Payload))
