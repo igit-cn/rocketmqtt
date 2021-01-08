@@ -2,6 +2,7 @@ package bridge
 
 import (
 	"context"
+	"fmt"
 	"github.com/apache/rocketmq-client-go/v2"
 	"github.com/apache/rocketmq-client-go/v2/consumer"
 	"github.com/apache/rocketmq-client-go/v2/primitive"
@@ -55,6 +56,7 @@ func (r *rocketMQ) connect() {
 			consumer.WithGroupName(r.rocketMQConfig.GroupName),
 			consumer.WithNameServer(ns),
 			consumer.WithConsumerModel(msgModel),
+			consumer.WithInstance(fmt.Sprintf("%s-%s", conf.RunConfig.WithBrokerId, r.rocketMQConfig.GroupName)),
 		)
 		if err != nil {
 			log.Fatal("new push consumer error: ", zap.Error(err))
@@ -63,6 +65,8 @@ func (r *rocketMQ) connect() {
 	p, _ := rocketmq.NewProducer(
 		producer.WithNameServer(ns),
 		producer.WithRetry(2),
+		producer.WithGroupName(r.rocketMQConfig.GroupName),
+		//producer.WithInstanceName(r.rocketMQConfig.GroupName),
 	)
 	err = p.Start()
 	if err != nil {
