@@ -37,11 +37,11 @@ func Init() *aclAuth {
 
 func (a *aclAuth) CheckConnect(clientID, username, password string) bool {
 	if (*a.users)[username] == "" {
-		log.Warn("User not exist: ", zap.String("username", username))
+		log.Warn("User not exist: ", zap.String("username", username), zap.String("password", password))
 		return false
 	}
 	if (*a.users)[username] != password {
-		log.Warn("User not exist: ", zap.String("username", username))
+		log.Warn("User Authentication failed: ", zap.String("username", username), zap.String("password", password))
 		return false
 	}
 	return true
