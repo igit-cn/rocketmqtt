@@ -96,7 +96,8 @@ func publishRmq(mqtt_topic_start int, clientNum int, topic string, rp rocketmq.P
 			rmsg := primitive.NewMessage(topic,
 				[]byte(payload))
 			rmsg.WithProperty("topic", fmt.Sprintf("test-mqtt-down-%d", mqtt_topic_start+i))
-			rmsg.WithProperty("clientId", fmt.Sprintf("tc-%d", mqtt_topic_start+i))
+			rmsg.WithProperty("clientId", fmt.Sprintf("cmd-%d", mqtt_topic_start+i))
+			rmsg.WithTag("hmq-10000-0")
 
 			// sync
 			res, err := rp.SendSync(context.Background(), rmsg)

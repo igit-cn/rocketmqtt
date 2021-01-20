@@ -2,11 +2,11 @@ package authhttp
 
 import (
 	"encoding/json"
-	"rocketmqtt/logger"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"rocketmqtt/logger"
 	"strconv"
 	"strings"
 	"time"
@@ -31,7 +31,6 @@ var (
 	httpClient *http.Client
 )
 
-//Init init kafak client
 func Init() *authHTTP {
 	content, err := ioutil.ReadFile("./plugins/auth/authhttp/http.json")
 	if err != nil {

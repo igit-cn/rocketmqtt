@@ -41,8 +41,7 @@ func InitKafka() map[string]*kafka {
 //connect
 func (k *kafka) connect() {
 	conf := sarama.NewConfig()
-	conf.Version = sarama.V1_1_1_0
-	//conf.Producer.Return.Successes = true
+	conf.Version = sarama.V2_2_0_0
 	kafkaClient, err := sarama.NewAsyncProducer(k.kafakConfig.Addr, conf)
 	if err != nil {
 		log.Fatal("create kafka async producer failed: ", zap.Error(err))
