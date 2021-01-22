@@ -678,8 +678,6 @@ func (c *client) Close() {
 			go b.connectRouter(c.route.remoteID, c.route.remoteUrl)
 		}
 	}
-	// delete session when connection close
-	c.broker.sessionMgr.Del(c.session.ID())
 }
 
 func (c *client) WriterPacket(packet packets.ControlPacket) error {
