@@ -70,7 +70,7 @@ func (collector *Collector) Collect(ch chan<- prometheus.Metric) {
 	//Note that you can pass CounterValue, GaugeValue, or UntypedValue types here.
 	ch <- prometheus.MustNewConstMetric(collector.clientTotalMetric, prometheus.CounterValue, retrunFloat64(&broker.ClientCount))
 	ch <- prometheus.MustNewConstMetric(collector.sessionCountMetric, prometheus.GaugeValue, sessionCount)
-	ch <- prometheus.MustNewConstMetric(collector.sessionCountMetric, prometheus.GaugeValue, connectionCount)
+	ch <- prometheus.MustNewConstMetric(collector.connectionCountMetric, prometheus.GaugeValue, connectionCount)
 	ch <- prometheus.MustNewConstMetric(collector.messageDownstreamTotalMetric, prometheus.CounterValue, retrunFloat64(&broker.MessageDownCount))
 	ch <- prometheus.MustNewConstMetric(collector.messageUpstreamTotalMetric, prometheus.CounterValue, retrunFloat64(&broker.MessageUpCount))
 }
