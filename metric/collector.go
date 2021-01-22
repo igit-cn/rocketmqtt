@@ -1,8 +1,8 @@
 package metric
 
 import (
-	"rocketmqtt/broker"
 	"github.com/prometheus/client_golang/prometheus"
+	"rocketmqtt/broker"
 	"sync/atomic"
 )
 
@@ -13,6 +13,7 @@ import (
 type Collector struct {
 	clientTotalMetric            *prometheus.Desc
 	sessionCountMetric           *prometheus.Desc
+	connectionCountMetric        *prometheus.Desc
 	messageDownstreamTotalMetric *prometheus.Desc
 	messageUpstreamTotalMetric   *prometheus.Desc
 }
@@ -27,6 +28,10 @@ func newCollector() *Collector {
 		),
 		sessionCountMetric: prometheus.NewDesc("rocketmqtt_session_count",
 			"Shows session count",
+			nil, nil,
+		),
+		connectionCountMetric: prometheus.NewDesc("rocketmqtt_connection_count",
+			"Shows connection count",
 			nil, nil,
 		),
 		messageDownstreamTotalMetric: prometheus.NewDesc("rocketmqtt_message_downstream_total",
@@ -47,6 +52,7 @@ func (collector *Collector) Describe(ch chan<- *prometheus.Desc) {
 	//Update this section with the each metric you create for a given collector
 	ch <- collector.clientTotalMetric
 	ch <- collector.sessionCountMetric
+	ch <- collector.connectionCountMetric
 	ch <- collector.messageDownstreamTotalMetric
 	ch <- collector.messageUpstreamTotalMetric
 }
@@ -56,14 +62,15 @@ func (collector *Collector) Collect(ch chan<- prometheus.Metric) {
 
 	//Implement logic here to determine proper metric value to return to prometheus
 	//for each descriptor or call other functions that do so.
-	var sessionCount float64
 
-	sessionCount = float64(broker.RunBroker.SessionCount())
+	sessionCount := float64(broker.RunBroker.SessionCount())
+	connectionCount := float64(broker.RunBroker.SessionCount())
 
 	//Write latest value for each metric in the prometheus metric channel.
 	//Note that you can pass CounterValue, GaugeValue, or UntypedValue types here.
 	ch <- prometheus.MustNewConstMetric(collector.clientTotalMetric, prometheus.CounterValue, retrunFloat64(&broker.ClientCount))
 	ch <- prometheus.MustNewConstMetric(collector.sessionCountMetric, prometheus.GaugeValue, sessionCount)
+	ch <- prometheus.MustNewConstMetric(collector.sessionCountMetric, prometheus.GaugeValue, connectionCount)
 	ch <- prometheus.MustNewConstMetric(collector.messageDownstreamTotalMetric, prometheus.CounterValue, retrunFloat64(&broker.MessageDownCount))
 	ch <- prometheus.MustNewConstMetric(collector.messageUpstreamTotalMetric, prometheus.CounterValue, retrunFloat64(&broker.MessageUpCount))
 }
