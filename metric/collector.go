@@ -64,7 +64,7 @@ func (collector *Collector) Collect(ch chan<- prometheus.Metric) {
 	//for each descriptor or call other functions that do so.
 
 	sessionCount := float64(broker.RunBroker.SessionCount())
-	connectionCount := float64(broker.RunBroker.SessionCount())
+	connectionCount := float64(broker.RunBroker.ConnectionCount())
 
 	//Write latest value for each metric in the prometheus metric channel.
 	//Note that you can pass CounterValue, GaugeValue, or UntypedValue types here.
