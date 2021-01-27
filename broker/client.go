@@ -650,6 +650,11 @@ func (c *client) Close() {
 
 	subs := c.subMap
 
+	// if clientId not exist clean session
+	if _, exist := b.clients.Load(c.info.clientID); !exist {
+		b.sessionMgr.Del(c.info.clientID)
+	}
+
 	if b != nil {
 		b.removeClient(c)
 		for _, sub := range subs {
