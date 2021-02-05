@@ -1,6 +1,7 @@
 ## Rocketmqtt
-一个高性能的mqtt消息转发服务器，支持根据topic转发至kafka、rocketmq，并支持rockeymq下发消息，
-修改自 github.com/fhmq/hmq
+一个高性能的mqtt消息转发服务器，支持根据topic转发至kafka、rocketmq，并支持订阅rocketmq下发消息。
+工程高性能主要依赖于原项目 github.com/fhmq/hmq
+在原项目基础上增加了rocketmq转发订阅、根据clientid直接下发、本地账号密码登陆mqtt等功能，并注释了大量集群代码，如果没有这方面需求，建议使用原项目
 #### 特性
 - 支持转发至kafka
 - 支持转发至rocketmq
@@ -19,7 +20,7 @@
 - cpu 30%
 - load5 3
 - 内存 10G
-- 平局延迟 1ms
+- 平均延迟 1ms
 
 
 Free and High Performance MQTT Broker 
