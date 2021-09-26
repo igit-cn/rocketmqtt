@@ -140,7 +140,7 @@ func (c *client) readLoop() {
 
 			packet, err := packets.ReadPacket(nc)
 			if err != nil {
-				log.Error("read packet error: ", zap.Error(err), zap.String("ClientID", c.info.clientID))
+				log.Debug("read packet error: ", zap.Error(err), zap.String("ClientID", c.info.clientID))
 				msg := &Message{
 					client: c,
 					packet: DisconnectedPacket,

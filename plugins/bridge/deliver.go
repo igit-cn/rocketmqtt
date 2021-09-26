@@ -82,7 +82,7 @@ func (d *deliver) Publish(e *Elements) error {
 	}
 	var err error
 	if bitMark == 0 {
-		log.Warn("No match deliver rule", zap.String("ClientID", e.ClientID), zap.String("Topic", e.Topic))
+		log.Debug("No match deliver rule", zap.String("ClientID", e.ClientID), zap.String("Topic", e.Topic))
 		return nil
 	}
 	for i := len(conf.RunConfig.DeliverMap); i >= 0; i-- {

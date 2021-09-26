@@ -3,9 +3,9 @@ package broker
 import (
 	"crypto/tls"
 	"fmt"
-	"rocketmqtt/conf"
 	"net"
 	"net/http"
+	"rocketmqtt/conf"
 	"sync"
 	"time"
 
@@ -17,9 +17,9 @@ import (
 	"rocketmqtt/broker/lib/topics"
 
 	"github.com/eclipse/paho.mqtt.golang/packets"
-	"rocketmqtt/pool"
 	"go.uber.org/zap"
 	"golang.org/x/net/websocket"
+	"rocketmqtt/pool"
 )
 
 var RunBroker *Broker
@@ -285,10 +285,10 @@ func (b *Broker) handleConnection(typ int, conn net.Conn) {
 		return
 	}
 
-	log.Info("read connect from ", zap.String("clientID", msg.ClientIdentifier))
+	log.Debug("read connect from ", zap.String("clientID", msg.ClientIdentifier))
 
 	// disconnect without client id
-	if msg.ClientIdentifier == ""{
+	if msg.ClientIdentifier == "" {
 		conn.Close()
 	}
 
