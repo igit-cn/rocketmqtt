@@ -6,7 +6,7 @@ import (
 )
 
 type topicMatched struct {
-	ts     time.Time
+	//ts     time.Time
 	topics []string
 }
 

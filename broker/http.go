@@ -7,21 +7,25 @@ import (
 func InitHTTPMoniter(b *Broker) {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
-	router.DELETE("api/v1/connections/:clientid", func(c *gin.Context) {
+	router.DELETE("api/v1/clients/:clientid", func(c *gin.Context) {
 		clientid := c.Param("clientid")
 		cli, ok := b.clients.Load(clientid)
 		if ok {
 			conn, succss := cli.(*client)
 			if succss {
 				conn.Close()
+				c.JSON(200, map[string]interface{}{
+					"ok":  0,
+					"msg": "closed",
+				})
 			}
 		}
-		resp := map[string]int{
-			"code": 0,
-		}
-		c.JSON(200, &resp)
+		c.JSON(200, map[string]interface{}{
+			"ok":  1,
+			"msg": "clientId not exist",
+		})
 	})
-	router.GET("api/v1/connections/:clientid", func(c *gin.Context) {
+	router.GET("api/v1/clients/:clientid", func(c *gin.Context) {
 		clientid := c.Param("clientid")
 		cli, ok := b.clients.Load(clientid)
 		if ok {
@@ -58,9 +62,9 @@ func InitHTTPMoniter(b *Broker) {
 			"msg": err.Error(),
 		})
 	})
-	router.GET("api/v1/connections", func(c *gin.Context) {
+	router.GET("api/v1/clients", func(c *gin.Context) {
 		var clients []string
-		b.clients.Range(func(key, value interface{}) bool {
+		b.clients.Range(func(key, _ interface{}) bool {
 			clients = append(clients, key.(string))
 			return true
 		})
