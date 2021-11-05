@@ -1,10 +1,10 @@
 package acl
 
 import (
-	"encoding/json"
+	"rocketmqtt/conf"
+
 	"github.com/prometheus/common/log"
 	"go.uber.org/zap"
-	"io/ioutil"
 )
 
 type aclAuth struct {
@@ -17,21 +17,21 @@ func Init() *aclAuth {
 	if err != nil {
 		panic(err)
 	}
-	content, err := ioutil.ReadFile("conf/mqttusers.json")
-	if err != nil {
-		log.Error("Read config file error: ", zap.Error(err))
-		panic(err)
-	}
-	users := new(map[string]string)
-	err = json.Unmarshal(content, &users)
-	if err != nil {
-		log.Error("Users config file unmarshal error: ", zap.Error(err))
-		panic(err)
-	}
+	// content, err := ioutil.ReadFile("conf/mqttusers.json")
+	// if err != nil {
+	// 	log.Error("Read config file error: ", zap.Error(err))
+	// 	panic(err)
+	// }
+	// users := new(map[string]string)
+	// err = json.Unmarshal(content, &users)
+	// if err != nil {
+	// 	log.Error("Users config file unmarshal error: ", zap.Error(err))
+	// 	panic(err)
+	// }
 
 	return &aclAuth{
 		config: aclConfig,
-		users:  users,
+		users:  &conf.RunConfig.Auth,
 	}
 }
 

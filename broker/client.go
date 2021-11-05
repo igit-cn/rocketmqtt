@@ -11,10 +11,11 @@ import (
 	"sync"
 	"time"
 
-	"golang.org/x/net/websocket"
 	"rocketmqtt/broker/lib/sessions"
 	"rocketmqtt/broker/lib/topics"
 	"rocketmqtt/plugins/bridge"
+
+	"golang.org/x/net/websocket"
 
 	"github.com/eclipse/paho.mqtt.golang/packets"
 	"go.uber.org/zap"
@@ -174,23 +175,23 @@ func ProcessMessage(msg *Message) {
 	//	log.Debug("Recv message:", zap.String("message type", reflect.TypeOf(msg.packet).String()[9:]), zap.String("ClientID", c.info.clientID))
 	//}
 
-	switch ca.(type) {
+	switch ca := ca.(type) {
 	case *packets.ConnackPacket:
 	case *packets.ConnectPacket:
 	case *packets.PublishPacket:
-		packet := ca.(*packets.PublishPacket)
-		c.ProcessPublish(packet)
+		// packet := ca.(*packets.PublishPacket)
+		c.ProcessPublish(ca)
 	case *packets.PubackPacket:
 	case *packets.PubrecPacket:
 	case *packets.PubrelPacket:
 	case *packets.PubcompPacket:
 	case *packets.SubscribePacket:
-		packet := ca.(*packets.SubscribePacket)
-		c.ProcessSubscribe(packet)
+		// packet := ca.(*packets.SubscribePacket)
+		c.ProcessSubscribe(ca)
 	case *packets.SubackPacket:
 	case *packets.UnsubscribePacket:
-		packet := ca.(*packets.UnsubscribePacket)
-		c.ProcessUnSubscribe(packet)
+		// packet := ca.(*packets.UnsubscribePacket)
+		c.ProcessUnSubscribe(ca)
 	case *packets.UnsubackPacket:
 	case *packets.PingreqPacket:
 		c.ProcessPing()
@@ -695,7 +696,7 @@ func (c *client) WriterPacket(packet packets.ControlPacket) error {
 	}
 	if c.conn == nil {
 		c.Close()
-		return errors.New("connect lost ....")
+		return errors.New("connect lost")
 	}
 
 	c.mu.Lock()

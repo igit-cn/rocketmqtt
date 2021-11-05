@@ -6,3 +6,4 @@ log/*
 .idea/*
 .vscode/*
 benchmark
+.DS_Store

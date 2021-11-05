@@ -2,7 +2,6 @@ package broker
 
 import (
 	"github.com/gin-gonic/gin"
-	"rocketmqtt/conf"
 )
 
 func InitHTTPMoniter(b *Broker) {
@@ -70,5 +69,5 @@ func InitHTTPMoniter(b *Broker) {
 			"clients": clients,
 		})
 	})
-	router.Run(":" + conf.RunConfig.HTTPPort)
+	router.Run(":" + b.config.Listen.ManagePort)
 }

@@ -3,13 +3,14 @@ package bridge
 import (
 	"context"
 	"fmt"
+	"os"
+	"rocketmqtt/conf"
+
 	"github.com/apache/rocketmq-client-go/v2"
 	"github.com/apache/rocketmq-client-go/v2/consumer"
 	"github.com/apache/rocketmq-client-go/v2/primitive"
 	"github.com/apache/rocketmq-client-go/v2/producer"
 	"go.uber.org/zap"
-	"os"
-	"rocketmqtt/conf"
 )
 
 // var RocketMQClients map[string]*rocketMQ
@@ -23,7 +24,7 @@ type rocketMQ struct {
 //Init RocketMQ Push client
 func InitRocketMQPushConsumer() map[string]*rocketMQ {
 	var rmqs = make(map[string]*rocketMQ)
-	for _, r := range conf.RunConfig.Plugin.RocketMQ {
+	for _, r := range conf.RunConfig.Plugins.Rocketmq {
 		if !r.Enable {
 			continue
 		}
@@ -56,7 +57,7 @@ func (r *rocketMQ) connect() {
 			consumer.WithGroupName(r.rocketMQConfig.GroupName),
 			consumer.WithNameServer(ns),
 			consumer.WithConsumerModel(msgModel),
-			consumer.WithInstance(fmt.Sprintf("%s-%s", conf.RunConfig.WithBrokerId, r.rocketMQConfig.GroupName)),
+			consumer.WithInstance(fmt.Sprintf("%s-%s", conf.RunConfig.Broker.ID, r.rocketMQConfig.GroupName)),
 		)
 		if err != nil {
 			log.Fatal("new push consumer error: ", zap.Error(err))
@@ -92,8 +93,8 @@ func (r *rocketMQ) publish(topic string, key string, msg *Elements, tag string) 
 		msg.Payload)
 	rmsg.WithProperty("clientId", msg.ClientID)
 	rmsg.WithProperty("topic", msg.Topic)
-	if conf.RunConfig.WithBrokerId != "" {
-		rmsg.WithProperty("bid", conf.RunConfig.WithBrokerId)
+	if conf.RunConfig.Broker.ID != "" {
+		rmsg.WithProperty("bid", conf.RunConfig.Broker.ID)
 	}
 	if tag != "" {
 		rmsg.WithTag(tag)

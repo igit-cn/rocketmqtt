@@ -2,9 +2,10 @@ package bridge
 
 import (
 	"errors"
-	"go.uber.org/zap"
 	"rocketmqtt/conf"
 	"strings"
+
+	"go.uber.org/zap"
 )
 
 const (
@@ -52,7 +53,7 @@ func (d *deliver) Publish(e *Elements) error {
 			bitMark = v
 		} else {
 			bitMark = 0
-			for _, target := range conf.RunConfig.DeliverMap {
+			for _, target := range conf.RunConfig.DeliversRules {
 				match := matchTopicSplit(target.NameSplit, e.Topic)
 				if match {
 					bitMark = bitMark | 1
@@ -82,18 +83,20 @@ func (d *deliver) Publish(e *Elements) error {
 	}
 	var err error
 	if bitMark == 0 {
-		log.Debug("No match deliver rule", zap.String("ClientID", e.ClientID), zap.String("Topic", e.Topic))
+		log.Warn("No matched deliver rule", zap.String("ClientID", e.ClientID), zap.String("Topic", e.Topic))
 		return nil
 	}
-	for i := len(conf.RunConfig.DeliverMap); i >= 0; i-- {
+	for i := len(conf.RunConfig.DeliversRules); i >= 0; i-- {
 		bit := bitMark & 1
 		if bit == 1 {
-			dm := conf.RunConfig.DeliverMap[i]
+			dm := conf.RunConfig.DeliversRules[i]
 			switch dm.Plugin {
 			case "kafka":
 				err = Delivers.kafkaClients[dm.Target].publish(dm.Topic, e.ClientID, e)
 			case "rocketmq":
 				err = Delivers.rocketMQClients[dm.Target].publish(dm.Topic, e.ClientID, e, dm.Tag)
+			default:
+				log.Warn("plugin not defined", zap.String("plugin name", dm.Plugin))
 			}
 		}
 		bitMark = bitMark >> 1
@@ -103,17 +106,11 @@ func (d *deliver) Publish(e *Elements) error {
 
 func match(subTopic []string, topic []string) bool {
 	if len(subTopic) == 0 {
-		if len(topic) == 0 {
-			return true
-		}
-		return false
+		return len(topic) == 0
 	}
 
 	if len(topic) == 0 {
-		if subTopic[0] == "#" {
-			return true
-		}
-		return false
+		return subTopic[0] == "#"
 	}
 
 	if subTopic[0] == "#" {
@@ -126,9 +123,9 @@ func match(subTopic []string, topic []string) bool {
 	return false
 }
 
-func matchTopic(subTopic string, topic string) bool {
-	return match(strings.Split(subTopic, "/"), strings.Split(topic, "/"))
-}
+// func matchTopic(subTopic string, topic string) bool {
+// 	return match(strings.Split(subTopic, "/"), strings.Split(topic, "/"))
+// }
 
 func matchTopicSplit(subTopic *[]string, topic string) bool {
 	return match(*subTopic, strings.Split(topic, "/"))

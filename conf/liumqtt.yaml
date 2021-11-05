@@ -1,0 +1,55 @@
+broker:
+  id: "{{HOSTNAME}}"
+  tcpKeepalive: 120
+  workerNum: 1024
+  logLevel: debug
+listen:
+  host: "0.0.0.0"
+  port: "1883"
+  tlsPort: "8883"
+  tlsHost: "0.0.0.0"
+  managePort: "7070"
+  manageHost: "0.0.0.0"
+  metricsPort: "5050"
+  metricsHost: "0.0.0.0"
+  websocketPort: "1888"
+  websocketPath: "/ws"
+  websocketTls: false
+tlsInfo:
+  enabled: false
+  verify: true
+  caFile: "ssl/ca/ca.pem"
+  certFile: "ssl/server/cert.pem"
+  keyFile: "ssl/server/key.pem"
+deliversRules:
+  - pattern: "#"
+    plugin: "kafka"
+    target: "up"
+    topic: "mqtt2kafka"
+  - pattern: "+/up/#"
+    plugin: "kafka"
+    target: "up"
+    topic: "mqtt2kafka"
+  - pattern: "+/reply/#"
+    plugin: "rocketmq"
+    target: "reply"
+    topic: "mqtt2rmq"
+    tag: "upstream"
+plugins:
+  rocketmq:
+    - name: "reply"
+      enable: true
+      enableSubscribe: true
+      subscribeTopic: "cmd_down_rmq"
+      subscribeModel: "Clustering"
+      subscribeTag: "downstream || lgz10000-0"
+      nameSrv: "10.2.55.20:9876"
+      groupName: "rocketmqtt"
+  kafka:
+    - name: "up"
+      enable: true
+      addr:
+        - 10.2.55.21:9092
+      groupName: "rocketmqtt"
+auth:
+  admin: admin

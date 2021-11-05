@@ -3,11 +3,12 @@ package broker
 import (
 	"rocketmqtt/logger"
 	"rocketmqtt/plugins/bridge"
+
 	"go.uber.org/zap"
 )
 
 var (
-	log = logger.Instance
+	log = logger.Instance.Named("broker")
 )
 
 func (b *Broker) Publish(e *bridge.Elements) {

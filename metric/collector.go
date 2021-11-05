@@ -1,9 +1,10 @@
 package metric
 
 import (
-	"github.com/prometheus/client_golang/prometheus"
 	"rocketmqtt/broker"
 	"sync/atomic"
+
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 //Define a struct for you collector that contains pointers

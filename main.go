@@ -2,11 +2,6 @@ package main
 
 import (
 	"context"
-	"github.com/apache/rocketmq-client-go/v2"
-	"github.com/apache/rocketmq-client-go/v2/consumer"
-	"github.com/apache/rocketmq-client-go/v2/primitive"
-	"github.com/eclipse/paho.mqtt.golang/packets"
-	"go.uber.org/zap"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
@@ -17,6 +12,14 @@ import (
 	"rocketmqtt/metric"
 	"rocketmqtt/plugins/bridge"
 	"runtime"
+
+	"fmt"
+
+	"github.com/apache/rocketmq-client-go/v2"
+	"github.com/apache/rocketmq-client-go/v2/consumer"
+	"github.com/apache/rocketmq-client-go/v2/primitive"
+	"github.com/eclipse/paho.mqtt.golang/packets"
+	"go.uber.org/zap"
 )
 
 var (
@@ -24,21 +27,19 @@ var (
 )
 
 func main() {
-	config, err := conf.ConfigureConfig(os.Args[1:])
-
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	go func() {
-		log.Fatal("pprof", zap.Error(http.ListenAndServe("0.0.0.0:6060", nil)))
-	}()
+	config := conf.RunConfig
 
-	go metric.InitCollector()
-
-	if err != nil {
-		log.Fatal("configure config error: ", zap.Error(err))
+	// 是否打开ppfrof性能分析
+	if config.Broker.LogLevel == "debug" {
+		go func() {
+			log.Fatal("pprof", zap.Error(http.ListenAndServe(fmt.Sprintf("0.0.0.0:%s", config.Listen.PprofPort), nil)))
+		}()
 	}
-	conf.RunConfig = config
-
+	// prometheus 数据采集接口
+	go metric.InitCollector()
+	// 初始化broker
 	b, err := broker.NewBroker(config)
 	if err != nil {
 		log.Fatal("New Broker error: ", zap.Error(err))

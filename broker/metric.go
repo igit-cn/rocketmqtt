@@ -2,6 +2,8 @@ package broker
 
 import "sync/atomic"
 
+var RunBroker *Broker
+
 var ClientCount uint64
 var MessageDownCount uint64
 var MessageUpCount uint64

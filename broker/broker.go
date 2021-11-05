@@ -1,6 +1,7 @@
 package broker
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"net"
@@ -16,13 +17,12 @@ import (
 	"rocketmqtt/broker/lib/sessions"
 	"rocketmqtt/broker/lib/topics"
 
+	"rocketmqtt/pool"
+
 	"github.com/eclipse/paho.mqtt.golang/packets"
 	"go.uber.org/zap"
 	"golang.org/x/net/websocket"
-	"rocketmqtt/pool"
 )
-
-var RunBroker *Broker
 
 const (
 	MessagePoolNum        = 1024
@@ -35,16 +35,16 @@ type Message struct {
 }
 
 type Broker struct {
-	id           string
-	mu           sync.Mutex
-	config       *conf.Config
-	tlsConfig    *tls.Config
-	wpool        *pool.WorkerPool
-	clients      sync.Map
-	routes       sync.Map
-	remotes      sync.Map
-	nodes        map[string]interface{}
-	clusterPool  chan *Message
+	id        string
+	config    *conf.Config
+	mu        sync.Mutex
+	tlsConfig *tls.Config
+	wpool     *pool.WorkerPool
+	clients   sync.Map
+	routes    sync.Map
+	remotes   sync.Map
+	nodes     map[string]interface{}
+	// clusterPool  chan *Message
 	topicsMgr    *topics.Manager
 	sessionMgr   *sessions.Manager
 	auth         auth.Auth
@@ -53,26 +53,22 @@ type Broker struct {
 	msgsPool     sync.Pool
 }
 
-func newMessagePool() []chan *Message {
-	pool := make([]chan *Message, 0)
-	for i := 0; i < MessagePoolNum; i++ {
-		ch := make(chan *Message, MessagePoolMessageNum)
-		pool = append(pool, ch)
-	}
-	return pool
-}
+// func newMessagePool() []chan *Message {
+// 	pool := make([]chan *Message, 0)
+// 	for i := 0; i < MessagePoolNum; i++ {
+// 		ch := make(chan *Message, MessagePoolMessageNum)
+// 		pool = append(pool, ch)
+// 	}
+// 	return pool
+// }
 
 func NewBroker(config *conf.Config) (*Broker, error) {
-	if config == nil {
-		config = conf.DefaultConfig
-	}
-
 	b := &Broker{
-		id:          GenUniqueId(),
-		config:      config,
-		wpool:       pool.New(config.Worker),
-		nodes:       make(map[string]interface{}),
-		clusterPool: make(chan *Message),
+		id:    config.Broker.ID,
+		wpool: pool.New(config.Broker.WorkerNum),
+		nodes: make(map[string]interface{}),
+		//clusterPool: make(chan *Message),
+		config: config,
 	}
 
 	var err error
@@ -88,8 +84,8 @@ func NewBroker(config *conf.Config) (*Broker, error) {
 		return nil, err
 	}
 
-	if b.config.TlsPort != "" {
-		tlsconfig, err := conf.NewTLSConfig(b.config.TlsInfo)
+	if config.Listen.TLSPort != "" {
+		tlsconfig, err := conf.NewTLSConfig()
 		if err != nil {
 			log.Error("new tlsConfig error", zap.Error(err))
 			return nil, err
@@ -97,7 +93,7 @@ func NewBroker(config *conf.Config) (*Broker, error) {
 		b.tlsConfig = tlsconfig
 	}
 
-	b.auth = b.config.Plugin.Auth
+	b.auth = auth.NewAuth("authfile")
 	b.bridgeMQ = bridge.InitBridgeMQ()
 
 	b.elementsPool = sync.Pool{
@@ -116,17 +112,16 @@ func NewBroker(config *conf.Config) (*Broker, error) {
 
 func (b *Broker) SubmitWork(clientId string, msg *Message) {
 	if b.wpool == nil {
-		b.wpool = pool.New(b.config.Worker)
+		b.wpool = pool.New(b.config.Broker.WorkerNum)
 	}
 
-	if msg.client.typ == CLUSTER {
-		b.clusterPool <- msg
-	} else {
-		b.wpool.Submit(clientId, func() {
-			ProcessMessage(msg)
-		})
-	}
-
+	// if msg.client.typ == CLUSTER {
+	// 	b.clusterPool <- msg
+	// } else {
+	b.wpool.Submit(clientId, func() {
+		ProcessMessage(msg)
+	})
+	// }
 }
 
 func (b *Broker) Start() {
@@ -135,12 +130,12 @@ func (b *Broker) Start() {
 		return
 	}
 
-	if b.config.HTTPPort != "" {
+	if b.config.Listen.ManagePort != "" {
 		go InitHTTPMoniter(b)
 	}
 
 	//listen client over tcp
-	if b.config.Port != "" {
+	if b.config.Listen.Port != "" {
 		go b.StartClientListening(false)
 	}
 
@@ -150,12 +145,12 @@ func (b *Broker) Start() {
 	//}
 
 	//listen for websocket
-	if b.config.WsPort != "" {
+	if b.config.Listen.WebsocketPort != "" {
 		go b.StartWebsocketListening()
 	}
 
 	//listen client over tls
-	if b.config.TlsPort != "" {
+	if b.config.Listen.TLSPort != "" {
 		go b.StartClientListening(true)
 	}
 
@@ -168,14 +163,14 @@ func (b *Broker) Start() {
 }
 
 func (b *Broker) StartWebsocketListening() {
-	path := b.config.WsPath
-	hp := ":" + b.config.WsPort
+	path := b.config.Listen.WebsocketPath
+	hp := ":" + b.config.Listen.WebsocketPort
 	log.Info("Start Websocket Listener on:", zap.String("hp", hp), zap.String("path", path))
 	ws := &websocket.Server{Handler: websocket.Handler(b.wsHandler)}
 	mux := http.NewServeMux()
 	mux.Handle(path, ws)
 	var err error
-	if b.config.WsTLS {
+	if b.config.Listen.WebsocketTls {
 		err = http.ListenAndServeTLS(hp, b.config.TlsInfo.CertFile, b.config.TlsInfo.KeyFile, mux)
 	} else {
 		err = http.ListenAndServe(hp, mux)
@@ -196,13 +191,16 @@ func (b *Broker) StartClientListening(Tls bool) {
 	var hp string
 	var err error
 	var l net.Listener
+	var lc = net.ListenConfig{
+		KeepAlive: time.Duration(b.config.Broker.TcpKeepalive) * time.Second,
+	}
 	if Tls {
-		hp = b.config.TlsHost + ":" + b.config.TlsPort
+		hp = b.config.Listen.Host + ":" + b.config.Listen.TLSPort
 		l, err = tls.Listen("tcp", hp, b.tlsConfig)
 		log.Info("Start TLS Listening client on ", zap.String("hp", hp))
 	} else {
-		hp := b.config.Host + ":" + b.config.Port
-		l, err = net.Listen("tcp", hp)
+		hp := b.config.Listen.Host + ":" + b.config.Listen.Port
+		l, err = lc.Listen(context.Background(), "tcp", hp)
 		log.Info("Start Listening client on ", zap.String("hp", hp))
 	}
 	if err != nil {
@@ -285,7 +283,7 @@ func (b *Broker) handleConnection(typ int, conn net.Conn) {
 		return
 	}
 
-	log.Debug("read connect from ", zap.String("clientID", msg.ClientIdentifier))
+	log.Debug("new connect from ", zap.String("clientID", msg.ClientIdentifier))
 
 	// disconnect without client id
 	if msg.ClientIdentifier == "" {
@@ -442,17 +440,17 @@ func (b *Broker) handleConnection(typ int, conn net.Conn) {
 //	go c.StartPing()
 //}
 
-func (b *Broker) processClusterInfo() {
-	for {
-		msg, ok := <-b.clusterPool
-		if !ok {
-			log.Error("read message from cluster channel error")
-			return
-		}
-		ProcessMessage(msg)
-	}
+// func (b *Broker) processClusterInfo() {
+// 	for {
+// 		msg, ok := <-b.clusterPool
+// 		if !ok {
+// 			log.Error("read message from cluster channel error")
+// 			return
+// 		}
+// 		ProcessMessage(msg)
+// 	}
 
-}
+// }
 
 func (b *Broker) connectRouter(id, addr string) {
 	var conn net.Conn
@@ -476,7 +474,7 @@ func (b *Broker) connectRouter(id, addr string) {
 
 			log.Debug("Connect to route timeout ,retry...")
 
-			if 0 == timeDelay {
+			if timeDelay == 0 {
 				timeDelay = 1 * time.Second
 			} else {
 				timeDelay *= 2

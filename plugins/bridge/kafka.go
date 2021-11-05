@@ -5,9 +5,10 @@ import (
 	"rocketmqtt/conf"
 	"time"
 
+	"sync"
+
 	"github.com/Shopify/sarama"
 	"go.uber.org/zap"
-	"sync"
 )
 
 // var KafkaClients map[string]*kafka
@@ -21,17 +22,17 @@ type kafka struct {
 
 func InitKafka() map[string]*kafka {
 	var kafkas = make(map[string]*kafka)
-	for _, r := range conf.RunConfig.Plugin.Kafka {
+	for _, r := range conf.RunConfig.Plugins.Kafka {
 		if !r.Enable {
 			continue
 		}
 		c := &kafka{kafakConfig: r}
 		kafkas[r.Name] = c
 		c.connect()
-		if conf.RunConfig.WithBrokerId != "" {
+		if conf.RunConfig.Broker.ID != "" {
 			c.Headers = append(c.Headers, sarama.RecordHeader{
 				Key:   []byte("bid"),
-				Value: []byte(conf.RunConfig.WithBrokerId),
+				Value: []byte(conf.RunConfig.Broker.ID),
 			})
 		}
 	}
