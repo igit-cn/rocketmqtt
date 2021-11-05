@@ -30,35 +30,10 @@ func NewDevLogger() (*zap.Logger, error) {
 }
 
 // NewProdLogger return a logger for production builds
-func NewProdLogger() (*zap.Logger, error) {
+func NewProdLogger(Level zapcore.Level) (*zap.Logger, error) {
 	logCfg := zap.NewProductionConfig()
 	logCfg.DisableStacktrace = true
-	logCfg.Level = zap.NewAtomicLevelAt(zap.InfoLevel)
+	logCfg.Level = zap.NewAtomicLevelAt(Level)
 	logCfg.EncoderConfig = encoderCfg
 	return logCfg.Build()
-}
-
-func Prod() *zap.Logger {
-
-	l, _ := NewProdLogger()
-	Instance = l
-
-	return Instance
-}
-
-func Debug() *zap.Logger {
-
-	l, _ := NewDevLogger()
-	Instance = l
-
-	return Instance
-}
-
-func Get() *zap.Logger {
-	if Instance == nil {
-		l, _ := NewProdLogger()
-		Instance = l
-	}
-
-	return Instance
 }

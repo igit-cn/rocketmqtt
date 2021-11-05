@@ -27,7 +27,7 @@ type authHTTP struct {
 
 var (
 	config     Config
-	log        = logger.Get().Named("authhttp")
+	log        = logger.Instance.Named("authhttp")
 	httpClient *http.Client
 )
 

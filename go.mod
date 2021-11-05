@@ -11,7 +11,6 @@ require (
 	github.com/gin-gonic/gin v1.4.0
 	github.com/golang/protobuf v1.3.2 // indirect
 	github.com/google/uuid v1.1.1
-	github.com/json-iterator/go v1.1.9
 	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/prometheus/client_golang v0.9.3

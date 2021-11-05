@@ -137,11 +137,23 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-
-	if c.Broker.LogLevel == "debug" {
+	// 设置日志邓丽
+	switch c.Broker.LogLevel {
+	case "debug":
 		logger.Instance, _ = logger.NewDevLogger()
-	} else {
-		logger.Instance, _ = logger.NewProdLogger()
+
+	case "info":
+		logger.Instance, _ = logger.NewProdLogger(zap.InfoLevel)
+
+	case "warn":
+		logger.Instance, _ = logger.NewProdLogger(zap.WarnLevel)
+
+	case "error":
+		logger.Instance, _ = logger.NewProdLogger(zap.ErrorLevel)
+
+	default:
+		logger.Instance, _ = logger.NewProdLogger(zap.InfoLevel)
+
 	}
 
 	for i, deliver := range c.DeliversRules {
