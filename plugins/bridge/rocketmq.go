@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"os"
 	"rocketmqtt/conf"
+	"rocketmqtt/logger"
 
 	"github.com/apache/rocketmq-client-go/v2"
 	"github.com/apache/rocketmq-client-go/v2/consumer"
 	"github.com/apache/rocketmq-client-go/v2/primitive"
 	"github.com/apache/rocketmq-client-go/v2/producer"
+	"github.com/apache/rocketmq-client-go/v2/rlog"
 	"go.uber.org/zap"
 )
-
-// var RocketMQClients map[string]*rocketMQ
 
 type rocketMQ struct {
 	rocketMQConfig       conf.Rocketmq
@@ -23,6 +23,9 @@ type rocketMQ struct {
 
 //Init RocketMQ Push client
 func InitRocketMQPushConsumer() map[string]*rocketMQ {
+	rmqLogger := logger.RmqLogger{}
+	rmqLogger.Init(logger.Instance.Sugar().Named("rocketmq"))
+	rlog.SetLogger(&rmqLogger)
 	var rmqs = make(map[string]*rocketMQ)
 	for _, r := range conf.RunConfig.Plugins.Rocketmq {
 		if !r.Enable {

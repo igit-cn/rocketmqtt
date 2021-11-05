@@ -2,7 +2,7 @@ broker:
   id: "{{HOSTNAME}}"
   tcpKeepalive: 120
   workerNum: 1024
-  logLevel: debug
+  logLevel: info
 listen:
   host: "0.0.0.0"
   port: "1883"

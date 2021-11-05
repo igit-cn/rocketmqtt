@@ -23,7 +23,7 @@ import (
 )
 
 var (
-	log = logger.Instance
+	log = logger.Instance.Named("main")
 )
 
 func main() {

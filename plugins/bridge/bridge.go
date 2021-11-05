@@ -18,7 +18,7 @@ const (
 )
 
 var (
-	log = logger.Instance
+	log = logger.Instance.Named("bridge")
 )
 
 //Elements kafka publish elements
@@ -38,8 +38,8 @@ type BridgeMQ interface {
 }
 
 func InitBridgeMQ() BridgeMQ {
-	targets.topicBitMap = make(map[string]int64, 100)
-	targets.clientsMap = make(map[string][]string, 100)
+	targets.topicBitMap = make(map[string]int64, 1000)
+	targets.clientsMap = make(map[string]*topicMatched, 1000)
 	Delivers.kafkaClients = InitKafka()
 	Delivers.rocketMQClients = InitRocketMQPushConsumer()
 	return &Delivers

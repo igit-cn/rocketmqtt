@@ -72,12 +72,13 @@ func (d *deliver) Publish(e *Elements) error {
 		//if config.UnsubscribeTopic != "" {
 		//	topics[config.UnsubscribeTopic] = true
 		//}
+		targets.deleteTopicMatch(e.ClientID)
 	case Disconnect:
 		//log.Debug("Connect", zap.String(e.ClientID, e.Action))
 		//if config.DisconnectTopic != "" {
 		//	topics[config.DisconnectTopic] = true
 		//}
-		targets.deleteClient(e.ClientID)
+		targets.deleteTopicMatch(e.ClientID)
 	default:
 		return errors.New("error action: " + e.Topic)
 	}

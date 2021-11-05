@@ -2,19 +2,25 @@ package bridge
 
 import (
 	"sync"
+	"time"
 )
 
+type topicMatched struct {
+	ts     time.Time
+	topics []string
+}
+
 type targetMemPool struct {
-	clientsMap  map[string][]string
+	clientsMap  map[string]*topicMatched
 	topicBitMap map[string]int64
 	sync.RWMutex
 }
 
-func (t *targetMemPool) deleteClient(clientId string) {
+func (t *targetMemPool) deleteTopicMatch(clientId string) {
 	t.Lock()
-	topics, ok := t.clientsMap[clientId]
+	tm, ok := t.clientsMap[clientId]
 	if ok {
-		for _, ts := range topics {
+		for _, ts := range tm.topics {
 			delete(t.topicBitMap, ts)
 		}
 	}
@@ -22,18 +28,20 @@ func (t *targetMemPool) deleteClient(clientId string) {
 }
 func (t *targetMemPool) storeClientTopicMatch(clientId string, topic string, bitmap int64) {
 	t.Lock()
-	topics, ok := t.clientsMap[clientId]
+	tm, ok := t.clientsMap[clientId]
 	if ok {
 		if _, ok := t.topicBitMap[topic]; ok {
-			// if more than 10 topics,delete first topic
-			if len(topics) >= 10 {
-				t.clientsMap[clientId] = append(topics[1:9], topic)
-			} else {
-				t.clientsMap[clientId] = append(topics, topic)
+			newTopics := append(tm.topics[1:9], topic)
+			t.clientsMap[clientId] = &topicMatched{
+				ts:     time.Now(),
+				topics: newTopics,
 			}
 		}
 	} else {
-		t.clientsMap[clientId] = []string{topic}
+		t.clientsMap[clientId] = &topicMatched{
+			ts:     time.Now(),
+			topics: []string{topic},
+		}
 	}
 	t.topicBitMap[topic] = bitmap
 	t.Unlock()

@@ -660,7 +660,7 @@ func (b *Broker) PublishMessageByCid(cid string, packet *packets.PublishPacket) 
 func (b *Broker) BroadcastUnSubscribe(subs map[string]*subscription) {
 
 	unsub := packets.NewControlPacket(packets.Unsubscribe).(*packets.UnsubscribePacket)
-	for topic, _ := range subs {
+	for topic := range subs {
 		unsub.Topics = append(unsub.Topics, topic)
 	}
 
