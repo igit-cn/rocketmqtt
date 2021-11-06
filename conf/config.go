@@ -130,7 +130,7 @@ func NewTLSConfig() (*tls.Config, error) {
 }
 
 func init() {
-	logger.Instance, _ = logger.NewProdLogger(zap.InfoLevel)
+	logger.Instance, _ = logger.NewDevLogger()
 
 	content, err := ioutil.ReadFile("conf/liumqtt.yaml")
 	if err != nil {

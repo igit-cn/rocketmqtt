@@ -23,8 +23,8 @@ var (
 
 //Elements kafka publish elements
 type Elements struct {
-	ClientID string `json:"clientid"`
-	//Username  string `json:"username"`
+	ClientID  string `json:"clientid"`
+	Username  string `json:"username"`
 	Topic     string `json:"topic"`
 	Payload   []byte `json:"payload"`
 	Timestamp int64  `json:"ts"`

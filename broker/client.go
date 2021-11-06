@@ -399,8 +399,8 @@ func (c *client) processClientSubscribe(packet *packets.SubscribePacket) {
 		}
 
 		b.Publish(&bridge.Elements{
-			ClientID: c.info.clientID,
-			//Username:  c.info.username,
+			ClientID:  c.info.clientID,
+			Username:  c.info.username,
 			Action:    bridge.Subscribe,
 			Timestamp: time.Now().UnixNano(),
 			Topic:     topic,
@@ -584,8 +584,8 @@ func (c *client) processClientUnSubscribe(packet *packets.UnsubscribePacket) {
 			//publish kafka
 
 			b.Publish(&bridge.Elements{
-				ClientID: c.info.clientID,
-				//Username:  c.info.username,
+				ClientID:  c.info.clientID,
+				Username:  c.info.username,
 				Action:    bridge.Unsubscribe,
 				Timestamp: time.Now().UnixNano(),
 				Topic:     topic,
@@ -639,8 +639,8 @@ func (c *client) Close() {
 
 	b := c.broker
 	b.Publish(&bridge.Elements{
-		ClientID: c.info.clientID,
-		//Username:  c.info.username,
+		ClientID:  c.info.clientID,
+		Username:  c.info.username,
 		Action:    bridge.Disconnect,
 		Timestamp: time.Now().UnixNano(),
 	})
