@@ -2,7 +2,6 @@ package bridge
 
 import (
 	"sync"
-	"time"
 )
 
 type topicMatched struct {
@@ -33,13 +32,13 @@ func (t *targetMemPool) storeClientTopicMatch(clientId string, topic string, bit
 		if _, ok := t.topicBitMap[topic]; ok {
 			newTopics := append(tm.topics[1:9], topic)
 			t.clientsMap[clientId] = &topicMatched{
-				ts:     time.Now(),
+				//ts:     time.Now(),
 				topics: newTopics,
 			}
 		}
 	} else {
 		t.clientsMap[clientId] = &topicMatched{
-			ts:     time.Now(),
+			//ts:     time.Now(),
 			topics: []string{topic},
 		}
 	}
