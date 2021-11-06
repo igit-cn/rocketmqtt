@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"rocketmqtt/logger"
 )
 
 var (
@@ -14,6 +15,8 @@ var (
 
 	providers = make(map[string]SessionsProvider)
 )
+
+var log = logger.Instance.Named("sessions")
 
 type SessionsProvider interface {
 	New(id string) (*Session, error)
@@ -29,11 +32,11 @@ type SessionsProvider interface {
 // it panics.
 func Register(name string, provider SessionsProvider) {
 	if provider == nil {
-		panic("session: Register provide is nil")
+		log.Panic("session: Register provide is nil")
 	}
 
 	if _, dup := providers[name]; dup {
-		panic("session: Register called twice for provider " + name)
+		log.Panic("session: Register called twice for provider " + name)
 	}
 
 	providers[name] = provider

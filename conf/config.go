@@ -1,10 +1,12 @@
 package conf
 
 import (
+	"bytes"
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"rocketmqtt/logger"
 	"strings"
@@ -128,16 +130,25 @@ func NewTLSConfig() (*tls.Config, error) {
 }
 
 func init() {
+	logger.Instance, _ = logger.NewProdLogger(zap.InfoLevel)
+
 	content, err := ioutil.ReadFile("conf/liumqtt.yaml")
 	if err != nil {
-		panic(err)
+		log.Panic(err.Error())
 	}
+
+	hostname, err := os.Hostname()
+	if err != nil {
+		hostname = "unkown"
+	}
+
+	content = bytes.ReplaceAll(content, []byte("{{HOSTNAME}}"), []byte(hostname))
 	var c Config
 	err = yaml.Unmarshal(content, &c)
 	if err != nil {
-		panic(err)
+		log.Panic(err.Error())
 	}
-	// 设置日志邓丽
+	// 设置日志等级
 	switch c.Broker.LogLevel {
 	case "debug":
 		logger.Instance, _ = logger.NewDevLogger()
@@ -160,15 +171,6 @@ func init() {
 		s := strings.Split(deliver.Pattern, "/")
 		deliver.NameSplit = &s
 		c.DeliversRules[i] = deliver
-	}
-	// 如果是hostname则获取系统hostname
-	if c.Broker.ID == "{{HOSTNAME}}" {
-		hostname, err := os.Hostname()
-		if err != nil {
-			c.Broker.ID = "unkown-hostname"
-		} else {
-			c.Broker.ID = hostname
-		}
 	}
 
 	RunConfig = &c

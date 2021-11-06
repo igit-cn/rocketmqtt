@@ -2,6 +2,7 @@ package topics
 
 import (
 	"fmt"
+	"rocketmqtt/logger"
 
 	"github.com/eclipse/paho.mqtt.golang/packets"
 )
@@ -25,6 +26,7 @@ const (
 
 var (
 	providers = make(map[string]TopicsProvider)
+	log       = logger.Instance.Named("topics")
 )
 
 // TopicsProvider
@@ -39,11 +41,11 @@ type TopicsProvider interface {
 
 func Register(name string, provider TopicsProvider) {
 	if provider == nil {
-		panic("topics: Register provide is nil")
+		log.Panic("topics: Register provide is nil")
 	}
 
 	if _, dup := providers[name]; dup {
-		panic("topics: Register called twice for provider " + name)
+		log.Panic("topics: Register called twice for provider " + name)
 	}
 
 	providers[name] = provider
